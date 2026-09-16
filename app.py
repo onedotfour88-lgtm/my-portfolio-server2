@@ -31,7 +31,9 @@ PRIVATE_PORTFOLIO_DATA = [
 ]
 
 def get_rp_id():
-    return request.host.split(':')[0]
+    # Vercel 요청 헤더에서 포트번호를 제외한 도메인만 안전하게 추출
+    host = request.headers.get('X-Forwarded-Host', request.host)
+    return host.split(':')[0]
 
 @app.route('/')
 def index():
@@ -50,8 +52,7 @@ def register_begin():
             user_display_name=user["display_name"],
         )
         session['register_challenge'] = options.challenge
-        # options 객체를 webauthn 전용 json 변환 함수로 직렬화
-        return Response(options_to_json(options), mimetype='application/json')
+        return Response(options_to_json(options), status=200, mimetype='application/json')
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -96,7 +97,7 @@ def auth_begin():
             user_verification=UserVerificationRequirement.PREFERRED,
         )
         session['auth_challenge'] = options.challenge
-        return Response(options_to_json(options), mimetype='application/json')
+        return Response(options_to_json(options), status=200, mimetype='application/json')
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -142,11 +143,6 @@ def get_private_data():
 @app.route('/api/logout', methods=['POST'])
 def logout():
     session.clear()
-    return jsonify({"status": "OK"})
-
-@app.route('/api/logout', methods=['POST'])
-def logout():
-    session.clear() # 세션 데이터 제거
     return jsonify({"status": "OK"})
 
 if __name__ == '__main__':
