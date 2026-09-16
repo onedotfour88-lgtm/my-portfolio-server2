@@ -1,0 +1,52 @@
+/* 공개 및 비공개 영역 경계선 시각화 */
+.boundary-label {
+    padding: 12px 20px;
+    font-weight: bold;
+    font-size: 14px;
+    border-radius: 8px;
+    margin: 25px 0 15px 0;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.public-boundary {
+    background-color: #e3f2fd;
+    color: #0d47a1;
+    border: 1px solid #bbdefb;
+}
+
+.private-boundary {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px dashed #ef9a9a;
+}
+
+.passkey-auth-card {
+    border: 2px solid #222;
+}
+
+.auth-status-box {
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.passkey-list {
+    list-style: none;
+    padding: 0;
+}
+
+.passkey-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.private-content-box {
+    background-color: #fffde7;
+    border: 1px solid #fff59d;
+}
