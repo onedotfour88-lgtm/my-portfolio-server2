@@ -3,78 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>이시헌 | Passkey Auth Portfolio</title>
+    <title>이시헌 | Passkey Portfolio</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: #f4f6f8; color: #333; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-        .container { width: 100%; max-width: 800px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); overflow: hidden; }
+        body { background-color: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .wrapper { width: 100%; max-width: 800px; }
+
+        /* [1] 로그인 게이트 (초기 진입 시 이것만 보임) */
+        #login-gate { background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); text-align: center; border: 1px solid #e2e8f0; }
+        #login-gate h1 { font-size: 1.8rem; color: #0f172a; margin-bottom: 8px; }
+        #login-gate p { color: #64748b; font-size: 0.95rem; margin-bottom: 24px; }
         
-        /* 로그인 게이트 화면 */
-        #login-gate { padding: 40px 30px; text-align: center; }
-        #login-gate h1 { font-size: 1.8rem; color: #111; margin-bottom: 10px; }
-        #login-gate p { color: #666; margin-bottom: 30px; font-size: 0.95rem; }
-        .auth-card { background: #fafafa; border: 1px solid #eaeaea; border-radius: 8px; padding: 25px; margin-bottom: 20px; }
+        .status-badge { display: inline-block; background: #fee2e2; color: #991b1b; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; margin-bottom: 24px; }
         
-        /* 버튼 스타일 */
-        .btn-group { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 15px; }
-        button { padding: 12px 24px; font-size: 0.95rem; font-weight: 600; border-radius: 6px; border: none; cursor: pointer; transition: all 0.2s; }
-        .btn-primary { background: #2563eb; color: #fff; }
+        .btn-group { display: flex; gap: 12px; justify-content: center; }
+        button { padding: 12px 24px; font-size: 0.95rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: #2563eb; color: #ffffff; }
         .btn-primary:hover { background: #1d4ed8; }
-        .btn-secondary { background: #e5e7eb; color: #374151; }
-        .btn-secondary:hover { background: #d1d5db; }
-        .btn-danger { background: #ef4444; color: #fff; }
-        .btn-danger:hover { background: #dc2626; }
-        
-        /* 포트폴리오 본문 화면 */
-        #portfolio-content { padding: 40px; display: none; }
-        .header-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f3f4f6; padding-bottom: 15px; margin-bottom: 25px; }
-        .section-title { font-size: 1.3rem; color: #111; margin-top: 25px; margin-bottom: 12px; border-left: 4px solid #2563eb; padding-left: 10px; }
-        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        .private-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 20px; margin-top: 20px; }
-        .private-box h3 { color: #991b1b; margin-bottom: 10px; }
-        .hidden { display: none !important; }
+        .btn-secondary { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
+        .btn-secondary:hover { background: #e2e8f0; }
+        .btn-logout { background: #ef4444; color: #ffffff; }
+        .btn-logout:hover { background: #dc2626; }
+
+        /* [2] 포트폴리오 본문 (초기에는 숨김) */
+        #portfolio-content { display: none; background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 24px; }
+        .section-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .section-title { font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 12px; border-left: 4px solid #2563eb; padding-left: 10px; }
+        .private-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 8px; }
+        .private-title { color: #166534; font-weight: 700; margin-bottom: 8px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <!-- 1. 진입 메인: 패스키 인증 게이트 -->
+<div class="wrapper">
+    <!-- [1] 첫 진입 화면: 패스키 로그인 전용 Gate -->
     <div id="login-gate">
         <h1>🔒 이시헌 포트폴리오</h1>
-        <p>비공개 데이터 및 상세 포트폴리오 접근을 위해 Passkey 인증이 필요합니다.</p>
+        <p>포트폴리오에 접근하려면 Passkey 인증으로 로그인하세요.</p>
         
-        <div class="auth-card">
-            <div id="auth-status" style="font-weight: 600; color: #4b5563; margin-bottom: 10px;">상태: 인증 필요 (비로그인)</div>
-            <div class="btn-group">
-                <button class="btn-primary" onclick="authenticatePasskey()">🔑 패스키로 로그인</button>
-                <button class="btn-secondary" onclick="registerPasskey()">➕ 새 패스키 등록</button>
-            </div>
+        <div id="auth-status" class="status-badge">현재 상태: 비로그인 (접근 불가)</div>
+        
+        <div class="btn-group">
+            <button class="btn-primary" onclick="authenticatePasskey()">🔑 패스키로 로그인</button>
+            <button class="btn-secondary" onclick="registerPasskey()">➕ 새 패스키 등록</button>
         </div>
     </div>
 
-    <!-- 2. 인증 성공 후 노출되는 포트폴리오 본문 -->
+    <!-- [2] 로그인 성공 시에만 열리는 포트폴리오 메인 화면 -->
     <div id="portfolio-content">
-        <div class="header-bar">
+        <div class="top-bar">
             <h2>DEVELOPER PORTFOLIO</h2>
-            <button class="btn-danger" onclick="handleLogout()">로그아웃</button>
+            <button class="btn-logout" onclick="handleLogout()">로그아웃</button>
         </div>
 
-        <div class="info-grid">
-            <div><strong>이름:</strong> 이시헌</div>
-            <div><strong>나이/성별:</strong> 27세 / 남</div>
-            <div><strong>이메일:</strong> onedotfour88@gmail.com</div>
-            <div><strong>연락처:</strong> 010-4611-3907</div>
+        <div class="section-title">인적 사항</div>
+        <div class="section-box">
+            <p style="margin-bottom:6px;"><strong>이름:</strong> 이시헌 (27세 / 남)</p>
+            <p style="margin-bottom:6px;"><strong>이메일:</strong> onedotfour88@gmail.com</p>
+            <p style="margin-bottom:6px;"><strong>연락처:</strong> 010-4611-3907</p>
+            <p><strong>주소:</strong> 부산광역시 동래구 온천2동</p>
         </div>
 
         <div class="section-title">경력 및 프로젝트</div>
-        <ul style="padding-left: 20px; color: #4b5563; line-height: 1.8;">
-            <li>대학 캡스톤 프로젝트 참여</li>
-            <li>프론트엔드 관련 공부 및 프로젝트 수행 (구글 맵 지도 기능을 이용한 택시 앱 개발)</li>
-        </ul>
+        <div class="section-box">
+            <ul style="padding-left: 20px; line-height: 1.8;">
+                <li>대학 캡스톤 프로젝트 참여</li>
+                <li>프론트 엔드 관련 공부 및 프로젝트 수행 (구글 맵 지도 기능을 이용한 택시 앱 개발)</li>
+            </ul>
+        </div>
 
+        <div class="section-title">비공개 데이터 (인증 성공)</div>
         <div class="private-box">
-            <h3>🔐 PRIVATE DATA (인증된 사용자 전용)</h3>
-            <div id="private-items-list">데이터를 불러오는 중...</div>
+            <div class="private-title">🔐 PRIVATE DATA</div>
+            <div id="private-items-list">데이터 로딩 중...</div>
         </div>
     </div>
 </div>

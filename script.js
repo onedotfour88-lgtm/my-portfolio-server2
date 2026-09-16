@@ -1,4 +1,4 @@
-// 패스키 로그인 처리
+// 패스키 로그인
 async function authenticatePasskey() {
     try {
         const beginRes = await fetch('/api/authenticate/begin', { method: 'POST' });
@@ -9,7 +9,6 @@ async function authenticatePasskey() {
             return;
         }
 
-        // Base64URL 변환
         options.challenge = bufferDecode(options.challenge);
         if (options.allowCredentials) {
             options.allowCredentials.forEach(c => c.id = bufferDecode(c.id));
@@ -36,7 +35,7 @@ async function authenticatePasskey() {
 
         const result = await completeRes.json();
         if (result.status === 'OK') {
-            showPortfolio();
+            loadPortfolio();
         } else {
             alert('인증 실패: ' + result.error);
         }
@@ -45,7 +44,7 @@ async function authenticatePasskey() {
     }
 }
 
-// 패스키 등록 처리
+// 패스키 등록
 async function registerPasskey() {
     try {
         const beginRes = await fetch('/api/register/begin', { method: 'POST' });
@@ -73,8 +72,8 @@ async function registerPasskey() {
 
         const result = await completeRes.json();
         if (result.status === 'OK') {
-            alert('패스키 등록 완료! 로그인합니다.');
-            showPortfolio();
+            alert('패스키 등록 완료! 로그인 처리합니다.');
+            loadPortfolio();
         } else {
             alert('등록 실패: ' + result.error);
         }
@@ -83,9 +82,9 @@ async function registerPasskey() {
     }
 }
 
-// 포트폴리오 화면 전환 및 비공개 데이터 로드
-async function showPortfolio() {
-    document.getElementById('login-gate').classList.add('hidden');
+// 로그인 성공 시 로그인 게이트 숨기고 포트폴리오 출력
+async function loadPortfolio() {
+    document.getElementById('login-gate').style.display = 'none';
     document.getElementById('portfolio-content').style.display = 'block';
 
     const res = await fetch('/api/private-data');
@@ -100,10 +99,10 @@ async function showPortfolio() {
 async function handleLogout() {
     await fetch('/api/logout', { method: 'POST' });
     document.getElementById('portfolio-content').style.display = 'none';
-    document.getElementById('login-gate').classList.remove('hidden');
+    document.getElementById('login-gate').style.display = 'block';
 }
 
-// Utility functions
+// Helper Functions
 function bufferDecode(value) {
     return Uint8Array.from(atob(value.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
 }
