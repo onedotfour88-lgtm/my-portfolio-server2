@@ -8,15 +8,48 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
-            background-color: #f1f3f5; 
+            background-color: #121212; 
             color: #212529; 
             padding: 40px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            min-height: 100vh;
+            justify-content: center;
         }
 
-        .container {
+        /* 1. 비로그인 시 표시되는 로그인 전용 모달 */
+        #loginScreen {
+            width: 100%;
+            max-width: 480px;
+            background: #1e1e1e;
+            border: 1px solid #2d2d2d;
+            border-radius: 16px;
+            padding: 40px 32px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            color: #ffffff;
+        }
+
+        .lock-icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .login-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; }
+        .login-desc { font-size: 0.9rem; color: #a0a0a0; line-height: 1.5; margin-bottom: 20px; }
+        .login-status { font-size: 0.85rem; color: #ff6b6b; margin-bottom: 24px; font-weight: 600; }
+        
+        .login-btn-group { display: flex; gap: 12px; justify-content: center; margin-bottom: 32px; }
+        .btn-passkey { background: #2563eb; color: white; padding: 12px 20px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; font-size: 0.95rem; }
+        .btn-passkey:hover { background: #1d4ed8; }
+        .btn-reg { background: #374151; color: white; padding: 12px 20px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; font-size: 0.95rem; }
+        .btn-reg:hover { background: #4b5563; }
+
+        .info-box { background: #2a2a2a; border-radius: 12px; padding: 20px; text-align: left; }
+        .info-section { margin-bottom: 16px; }
+        .info-section:last-child { margin-bottom: 0; }
+        .info-label { font-size: 0.85rem; color: #60a5fa; font-weight: 700; margin-bottom: 4px; }
+        .info-val { font-size: 0.85rem; color: #d1d5db; line-height: 1.4; }
+
+        /* 2. 로그인 완료 시 표시되는 전체 포트폴리오 컨테이너 */
+        #portfolioScreen {
             width: 100%;
             max-width: 640px;
             display: flex;
@@ -24,7 +57,6 @@
             gap: 20px;
         }
 
-        /* Top Action Bar */
         .top-bar {
             display: flex;
             justify-content: space-between;
@@ -40,18 +72,11 @@
             font-weight: 600;
             padding: 6px 12px;
             border-radius: 20px;
-            background: #f8f9fa;
-            color: #495057;
-            border: 1px solid #dee2e6;
-        }
-
-        .auth-badge.active {
             background: #e6fcf5;
             color: #0ca678;
-            border-color: #96f2d7;
+            border: 1px solid #96f2d7;
         }
 
-        /* Card Component */
         .card {
             background: #ffffff;
             border-radius: 16px;
@@ -75,120 +100,65 @@
             margin-bottom: 4px;
         }
 
-        .card-desc {
-            font-size: 0.9rem;
-            color: #868e96;
-        }
+        .card-desc { font-size: 0.9rem; color: #868e96; }
 
-        /* Table inside Contact Card */
-        .contact-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 8px;
-        }
+        .contact-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        .contact-table td { padding: 12px 0; font-size: 0.9rem; border-bottom: 1px solid #f1f3f5; }
+        .contact-table tr:last-child td { border-bottom: none; }
+        .contact-label { width: 100px; font-weight: 600; color: #868e96; font-size: 0.75rem; letter-spacing: 0.5px; text-transform: uppercase; }
+        .contact-val { color: #343a40; font-weight: 500; }
 
-        .contact-table td {
-            padding: 12px 0;
-            font-size: 0.9rem;
-            border-bottom: 1px solid #f1f3f5;
-        }
+        .content-list { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+        .content-item { font-size: 0.92rem; color: #495057; line-height: 1.6; }
 
-        .contact-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .contact-label {
-            width: 100px;
-            font-weight: 600;
-            color: #868e96;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        .contact-val {
-            color: #343a40;
-            font-weight: 500;
-        }
-
-        /* Content Text */
-        .content-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 8px;
-        }
-
-        .content-item {
-            font-size: 0.92rem;
-            color: #495057;
-            line-height: 1.6;
-        }
-
-        /* Buttons */
-        .btn-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        button {
-            padding: 10px 18px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s;
-        }
-
-        .btn-primary { background: #228be6; color: white; }
-        .btn-primary:hover { background: #1c7ed6; }
-        .btn-secondary { background: #f1f3f5; color: #495057; }
-        .btn-secondary:hover { background: #e9ecef; }
-        .btn-danger { background: #fa5252; color: white; }
+        .btn-danger { background: #fa5252; color: white; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: none; }
         .btn-danger:hover { background: #e03131; }
-
-        /* Lock Overlay Card */
-        .lock-card {
-            text-align: center;
-            padding: 40px 20px;
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-            border: 2px dashed #dee2e6;
-        }
-
-        .lock-card p {
-            color: #868e96;
-            font-size: 0.95rem;
-            margin-bottom: 16px;
-        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        
-        <!-- Top Auth Bar -->
-        <div class="top-bar">
-            <span id="authStatus" class="auth-badge">🔒 잠김 (비공개 데이터)</span>
-            <div class="btn-group">
-                <div id="unauthBtns" style="display: flex; gap: 8px;">
-                    <button class="btn-primary" onclick="loginPasskey()">패스키 로그인</button>
-                    <button class="btn-secondary" onclick="registerPasskey()">새 패스키 등록</button>
-                </div>
-                <button id="logoutBtn" class="btn-danger" style="display: none;" onclick="logoutPasskey()">로그아웃</button>
-            </div>
+    <!-- [화면 1] 비로그인 상태일 때 나타나는 패스키 인증 모달 -->
+    <div id="loginScreen">
+        <div class="lock-icon">🔒</div>
+        <div class="login-title">이시헌 포트폴리오</div>
+        <p class="login-desc">비공개 데이터 및 상세 포트폴리오 접근을 위해 Passkey 인증이 필요합니다.</p>
+        <div id="loginStatusText" class="login-status">상태: 미인증 (접근 제한됨)</div>
+
+        <div class="login-btn-group">
+            <button class="btn-passkey" onclick="loginPasskey()">🔑 패스키로 로그인</button>
+            <button class="btn-reg" onclick="registerPasskey()">➕ 새 패스키 등록</button>
         </div>
 
-        <!-- Header Card -->
+        <div class="info-box">
+            <div class="info-section">
+                <div class="info-label">주요 수행 프로젝트</div>
+                <div class="info-val">구글 맵 API 기반 실시간 위치 추적 택시 서비스 개발 (캡스톤 우수상)</div>
+            </div>
+            <div class="info-section">
+                <div class="info-label">핵심 기술 스택</div>
+                <div class="info-val">Python, Flask, JavaScript, WebAuthn (Passkey), Git, Vercel</div>
+            </div>
+            <div class="info-section">
+                <div class="info-label">대외비 데이터</div>
+                <div class="info-val">비공개 포트폴리오 상세 명세서 및 개인 기여도 리포트 문서 포함</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- [화면 2] 인증 완료 후 나타나는 전체 포트폴리오 화면 -->
+    <div id="portfolioScreen" style="display: none;">
+        
+        <div class="top-bar">
+            <span class="auth-badge">🔓 인증됨 (접근 완료)</span>
+            <button class="btn-danger" onclick="logoutPasskey()">로그아웃</button>
+        </div>
+
         <div class="card">
             <div class="card-subtitle">PORTFOLIO</div>
             <div class="card-title">이시헌</div>
             <div class="card-desc">27세 · 남</div>
         </div>
 
-        <!-- Contact Card -->
         <div class="card">
             <div class="card-subtitle">CONTACT</div>
             <table class="contact-table">
@@ -207,7 +177,6 @@
             </table>
         </div>
 
-        <!-- Career Card -->
         <div class="card">
             <div class="card-subtitle">CAREER</div>
             <div class="card-title" style="font-size: 1.2rem; margin-top: 4px;">경력</div>
@@ -217,7 +186,6 @@
             </div>
         </div>
 
-        <!-- Strength Card -->
         <div class="card">
             <div class="card-subtitle">STRENGTH</div>
             <div class="card-title" style="font-size: 1.2rem; margin-top: 4px;">강점</div>
@@ -228,7 +196,6 @@
             </div>
         </div>
 
-        <!-- Interests Card -->
         <div class="card">
             <div class="card-subtitle">INTERESTS</div>
             <div class="card-title" style="font-size: 1.2rem; margin-top: 4px;">취향</div>
@@ -239,7 +206,6 @@
             </div>
         </div>
 
-        <!-- Determination Card -->
         <div class="card">
             <div class="card-subtitle">DETERMINATION</div>
             <div class="card-title" style="font-size: 1.2rem; margin-top: 4px;">각오</div>
@@ -247,18 +213,6 @@
                 <div class="content-item">앞으로 평생 배우겠다는 자세로 하나하나 기초부터 해나가겠습니다.</div>
                 <div class="content-item">사람들의 의견을 수용하며 더 나아진 모습을 보여드리겠습니다.</div>
             </div>
-        </div>
-
-        <!-- Passkey Protected Private Section -->
-        <div id="lockedView" class="lock-card">
-            <p>🔒 추가 상세 비공개 데이터는 Passkey 인증 후 표시됩니다.</p>
-            <button class="btn-primary" onclick="loginPasskey()">패스키로 인증하기</button>
-        </div>
-
-        <div id="unlockedView" style="display: none;" class="card">
-            <div class="card-subtitle">PRIVATE DATA</div>
-            <div class="card-title" style="font-size: 1.2rem; margin-top: 4px;">비공개 세부 명세</div>
-            <div id="privateContent" class="content-list" style="margin-top: 12px;"></div>
         </div>
 
     </div>
@@ -281,8 +235,7 @@
         try {
             const res = await fetch('/api/private-data');
             if (res.ok) {
-                const data = await res.json();
-                renderLoggedInState(data.items);
+                renderLoggedInState();
             } else {
                 renderLoggedOutState();
             }
@@ -323,7 +276,7 @@
 
             const result = await completeRes.json();
             if (result.status === 'OK') {
-                alert('패스키 등록에 성공했습니다!');
+                alert('패스키 등록 성공! 포트폴리오로 진입합니다.');
                 checkAuthStatus();
             } else {
                 alert('등록 완료 실패: ' + result.error);
@@ -382,40 +335,20 @@
             console.error(err);
         } finally {
             renderLoggedOutState();
-            alert('로그아웃 되었습니다.');
+            alert('로그아웃되었습니다.');
         }
     }
 
-    function renderLoggedInState(items) {
-        const badge = document.getElementById('authStatus');
-        badge.innerText = '🔓 인증됨';
-        badge.classList.add('active');
-
-        document.getElementById('unauthBtns').style.display = 'none';
-        document.getElementById('logoutBtn').style.display = 'inline-block';
-
-        document.getElementById('lockedView').style.display = 'none';
-        const unlockedView = document.getElementById('unlockedView');
-        unlockedView.style.display = 'block';
-
-        const privateContent = document.getElementById('privateContent');
-        privateContent.innerHTML = items.map(item => `
-            <div class="content-item">
-                <strong>• ${item.title}:</strong> ${item.content}
-            </div>
-        `).join('');
+    function renderLoggedInState() {
+        document.body.style.backgroundColor = '#f1f3f5';
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('portfolioScreen').style.display = 'flex';
     }
 
     function renderLoggedOutState() {
-        const badge = document.getElementById('authStatus');
-        badge.innerText = '🔒 잠김 (비공개 데이터)';
-        badge.classList.remove('active');
-
-        document.getElementById('unauthBtns').style.display = 'flex';
-        document.getElementById('logoutBtn').style.display = 'none';
-
-        document.getElementById('lockedView').style.display = 'block';
-        document.getElementById('unlockedView').style.display = 'none';
+        document.body.style.backgroundColor = '#121212';
+        document.getElementById('loginScreen').style.display = 'block';
+        document.getElementById('portfolioScreen').style.display = 'none';
     }
 </script>
 </body>
