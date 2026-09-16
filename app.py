@@ -6,21 +6,15 @@ from webauthn import (
     generate_authentication_options,
     verify_authentication_response,
 )
-from webauthn.helpers.structs import (
-    PublicKeyCredentialRpEntity,
-    PublicKeyCredentialUserEntity,
-    UserVerificationRequirement,
-)
+from webauthn.helpers.structs import UserVerificationRequirement
 
-# [핵심] template_folder='.' 로 설정하여 Vercel 루트 경로의 index.html을 직접 로드
 app = Flask(__name__, template_folder='.', static_folder='.')
 app.secret_key = os.environ.get('SECRET_KEY', 'super-secret-key-for-passkey')
 
-# Passkey RP 설정 (Vercel 도메인 기준)
+# Passkey RP 설정 (Vercel 기본 도메인 자동 감지 및 fallback)
 RP_ID = os.environ.get('VERCEL_URL', 'localhost')
 RP_NAME = "Lee Siheon Portfolio"
 
-# 메모리 기반 데이터 저장소 (인증 정보 & 비공개 포트폴리오 데이터)
 users_db = {
     "user123": {
         "id": b"user123_unique_id",
@@ -40,7 +34,6 @@ PRIVATE_PORTFOLIO_DATA = [
 def index():
     return render_template('index.html')
 
-# 1. 패스키 등록 시작
 @app.route('/api/register/begin', methods=['POST'])
 def register_begin():
     user = users_db["user123"]
@@ -54,7 +47,6 @@ def register_begin():
     session['register_challenge'] = options.challenge
     return jsonify(options)
 
-# 2. 패스키 등록 완료
 @app.route('/api/register/complete', methods=['POST'])
 def register_complete():
     try:
@@ -80,7 +72,6 @@ def register_complete():
     except Exception as e:
         return jsonify({"status": "FAILED", "error": str(e)}), 400
 
-# 3. 패스키 로그인 시작
 @app.route('/api/authenticate/begin', methods=['POST'])
 def auth_begin():
     user = users_db["user123"]
@@ -94,7 +85,6 @@ def auth_begin():
     session['auth_challenge'] = options.challenge
     return jsonify(options)
 
-# 4. 패스키 로그인 완료
 @app.route('/api/authenticate/complete', methods=['POST'])
 def auth_complete():
     try:
@@ -102,7 +92,6 @@ def auth_complete():
         credential_data = request.get_json()
         user = users_db["user123"]
 
-        # 등록된 패스키 검증
         matched_cred = None
         for cred in user["credentials"]:
             if cred["id"] == credential_data.get("id"):
@@ -127,14 +116,12 @@ def auth_complete():
     except Exception as e:
         return jsonify({"status": "FAILED", "error": str(e)}), 400
 
-# 5. 비공개 데이터 제공 API
 @app.route('/api/private-data', methods=['GET'])
 def get_private_data():
     if not session.get('authenticated'):
         return jsonify({"error": "인증되지 않은 사용자입니다."}), 401
     return jsonify({"items": PRIVATE_PORTFOLIO_DATA})
 
-# 6. 로그아웃 API
 @app.route('/api/logout', methods=['POST'])
 def logout():
     session.clear()
