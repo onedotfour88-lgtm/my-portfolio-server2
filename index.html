@@ -3,67 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>이시헌 - Portfolio</title>
-    <link rel="stylesheet" href="style.css">
+    <title>이시헌 | Passkey Auth Portfolio</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #f4f6f8; color: #333; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .container { width: 100%; max-width: 800px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); overflow: hidden; }
+        
+        /* 로그인 게이트 화면 */
+        #login-gate { padding: 40px 30px; text-align: center; }
+        #login-gate h1 { font-size: 1.8rem; color: #111; margin-bottom: 10px; }
+        #login-gate p { color: #666; margin-bottom: 30px; font-size: 0.95rem; }
+        .auth-card { background: #fafafa; border: 1px solid #eaeaea; border-radius: 8px; padding: 25px; margin-bottom: 20px; }
+        
+        /* 버튼 스타일 */
+        .btn-group { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 15px; }
+        button { padding: 12px 24px; font-size: 0.95rem; font-weight: 600; border-radius: 6px; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: #2563eb; color: #fff; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-secondary { background: #e5e7eb; color: #374151; }
+        .btn-secondary:hover { background: #d1d5db; }
+        .btn-danger { background: #ef4444; color: #fff; }
+        .btn-danger:hover { background: #dc2626; }
+        
+        /* 포트폴리오 본문 화면 */
+        #portfolio-content { padding: 40px; display: none; }
+        .header-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f3f4f6; padding-bottom: 15px; margin-bottom: 25px; }
+        .section-title { font-size: 1.3rem; color: #111; margin-top: 25px; margin-bottom: 12px; border-left: 4px solid #2563eb; padding-left: 10px; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .private-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 20px; margin-top: 20px; }
+        .private-box h3 { color: #991b1b; margin-bottom: 10px; }
+        .hidden { display: none !important; }
+    </style>
 </head>
 <body>
-<div class="portfolio-page">
-    <main class="portfolio-container">
 
-        <!-- ===== 공개 영역 (PUBLIC SECTION) ===== -->
-        <div class="boundary-label public-boundary">🌐 PUBLIC AREA (공개 영역)</div>
+<div class="container">
+    <!-- 1. 진입 메인: 패스키 인증 게이트 -->
+    <div id="login-gate">
+        <h1>🔒 이시헌 포트폴리오</h1>
+        <p>비공개 데이터 및 상세 포트폴리오 접근을 위해 Passkey 인증이 필요합니다.</p>
         
-        <header class="portfolio-hero">
-            <div class="hero-label">PORTFOLIO</div>
-            <h1 class="profile-name">이시헌</h1>
-            <div class="basic-info"><span>27세</span> · <span>남</span></div>
-        </header>
-
-        <section class="portfolio-section">
-            <div class="section-label">CONTACT</div>
-            <div class="contact-list">
-                <div class="contact-item"><strong>EMAIL</strong><span>onedotfour88@gmail.com</span></div>
-                <div class="contact-item"><strong>PHONE</strong><span>010 4613 3806</span></div>
-                <div class="contact-item"><strong>ADDRESS</strong><span>부산광역시 동래구 온천2동</span></div>
+        <div class="auth-card">
+            <div id="auth-status" style="font-weight: 600; color: #4b5563; margin-bottom: 10px;">상태: 인증 필요 (비로그인)</div>
+            <div class="btn-group">
+                <button class="btn-primary" onclick="authenticatePasskey()">🔑 패스키로 로그인</button>
+                <button class="btn-secondary" onclick="registerPasskey()">➕ 새 패스키 등록</button>
             </div>
-        </section>
+        </div>
+    </div>
 
-        <section class="portfolio-section">
-            <div class="section-label">CAREER</div>
-            <h2>경력</h2>
-            <div class="section-content">
-                대학 캡스톤 프로젝트 참여 <br><br>프런트 엔드 관련 공부 및 프로젝트 수행 (구글 맵 지도 기능을 이용한 택시 앱 개발)
-            </div>
-        </section>
+    <!-- 2. 인증 성공 후 노출되는 포트폴리오 본문 -->
+    <div id="portfolio-content">
+        <div class="header-bar">
+            <h2>DEVELOPER PORTFOLIO</h2>
+            <button class="btn-danger" onclick="handleLogout()">로그아웃</button>
+        </div>
 
-        <!-- ===== 비공개 영역 경계선 (PRIVATE BOUNDARY) ===== -->
-        <div class="boundary-label private-boundary">🔒 PRIVATE AREA (비공개 영역 - 패스키 인증 필요)</div>
+        <div class="info-grid">
+            <div><strong>이름:</strong> 이시헌</div>
+            <div><strong>나이/성별:</strong> 27세 / 남</div>
+            <div><strong>이메일:</strong> onedotfour88@gmail.com</div>
+            <div><strong>연락처:</strong> 010-4611-3907</div>
+        </div>
 
-        <!-- 패스키 로그인 컨트롤러 -->
-        <section class="portfolio-section passkey-auth-card">
-            <h2>패스키(Passkey) 인증 관리</h2>
-            <div id="auth-status" class="auth-status-box">현재 상태: <strong>비로그인 (비공개 영역 접근 불가)</strong></div>
-            <div class="action-buttons">
-                <button type="button" class="save-button" onclick="loginWithPasskey()">패스키로 비공개 영역 열기</button>
-                <button type="button" class="generate-button" onclick="registerPasskey()">새 패스키 등록하기</button>
-                <button type="button" class="preview-button" onclick="logoutPasskey()">로그아웃</button>
-            </div>
-            
-            <div id="passkey-list-container" style="margin-top:20px;">
-                <h3>등록된 패스키 목록</h3>
-                <ul id="passkey-list" class="passkey-list"></ul>
-            </div>
-        </section>
+        <div class="section-title">경력 및 프로젝트</div>
+        <ul style="padding-left: 20px; color: #4b5563; line-height: 1.8;">
+            <li>대학 캡스톤 프로젝트 참여</li>
+            <li>프론트엔드 관련 공부 및 프로젝트 수행 (구글 맵 지도 기능을 이용한 택시 앱 개발)</li>
+        </ul>
 
-        <!-- 비공개 데이터 표시 구역 (패스키 인증 시에만 렌더링) -->
-        <section id="private-section" class="portfolio-section private-content-box" style="display:none;">
-            <div class="section-label">PRIVATE DATA</div>
-            <h2>비공개 세부 항목</h2>
-            <div id="private-items-container"></div>
-        </section>
-
-    </main>
+        <div class="private-box">
+            <h3>🔐 PRIVATE DATA (인증된 사용자 전용)</h3>
+            <div id="private-items-list">데이터를 불러오는 중...</div>
+        </div>
+    </div>
 </div>
-<script src="script.js"></script>
+
+<script src="./script.js"></script>
 </body>
 </html>
