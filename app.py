@@ -1,147 +1,144 @@
 import os
-import base64
-from flask import Flask, render_template, request, jsonify, session, send_from_directory
-from fido2.webauthn import PublicKeyCredentialCreationOptions, PublicKeyCredentialRequestOptions
-from fido2.server import Fido2Server
+from flask import Flask, render_template, request, jsonify, session
+from webauthn import (
+    generate_registration_options,
+    verify_registration_response,
+    generate_authentication_options,
+    verify_authentication_response,
+)
+from webauthn.helpers.structs import (
+    PublicKeyCredentialRpEntity,
+    PublicKeyCredentialUserEntity,
+    UserVerificationRequirement,
+)
 
-# Vercel 및 정적 파일(CSS, JS) 정상 연결을 위한 Flask 설정[cite: 1, 5, 6]
-app = Flask(__name__, static_folder=".", static_url_path="")
-app.secret_key = os.getenv("SECRET_KEY", "portfolio_passkey_secret_key_2026")
+# [핵심] template_folder='.' 로 설정하여 Vercel 루트 경로의 index.html을 직접 로드
+app = Flask(__name__, template_folder='.', static_folder='.')
+app.secret_key = os.environ.get('SECRET_KEY', 'super-secret-key-for-passkey')
 
-# 메모리 기반 사용자 mock 데이터
-users = {
-    "user1": {
-        "id": b"user1_bytes_id",
-        "name": "이시헌",
+# Passkey RP 설정 (Vercel 도메인 기준)
+RP_ID = os.environ.get('VERCEL_URL', 'localhost')
+RP_NAME = "Lee Siheon Portfolio"
+
+# 메모리 기반 데이터 저장소 (인증 정보 & 비공개 포트폴리오 데이터)
+users_db = {
+    "user123": {
+        "id": b"user123_unique_id",
+        "name": "onedotfour88@gmail.com",
         "display_name": "이시헌",
         "credentials": []
     }
 }
 
-PRIVATE_ITEMS = [
-    {"title": "1. 준비 중인 프로젝트 메모", "content": "FastAPI + WebAuthn 기반 인증 시스템 구현 프로젝트 메모"},
-    {"title": "2. 지원하려는 곳 목록", "content": "네이버, 카카오, 라인, 쿠팡, 우아한형제들 프론트엔드/백엔드"},
-    {"title": "3. 스스로 쓰는 회고", "content": "캡스톤 프로젝트 진행 및 팀 커뮤니케이션 해결 경험 회고"}
+PRIVATE_PORTFOLIO_DATA = [
+    {"title": "주요 수행 프로젝트", "content": "구글 맵 API 기반 실시간 위치 추적 택시 서비스 개발 (캡스톤 우수상)"},
+    {"title": "핵심 기술 스택", "content": "Python, Flask, JavaScript, WebAuthn (Passkey), Git, Vercel"},
+    {"title": "대외비 데이터", "content": "비공개 포트폴리오 상세 명세서 및 개인 기여도 리포트 문서 포함"}
 ]
 
-def get_fido_server():
-    # 접속한 Host 도메인을 자동으로 감지하여 RP_ID를 설정 (Vercel 도메인 대응)
-    host = request.host.split(":")[0] if request else "localhost"
-    return Fido2Server({"id": host, "name": "Portfolio Passkey App"})
-
-# --- 메인 페이지 및 정적 파일 경로 라우팅 ---
-@app.route("/")
+@app.route('/')
 def index():
-    return app.send_static_file("index.html")[cite: 1, 3]
+    return render_template('index.html')
 
-@app.route("/<path:filename>")
-def serve_static(filename):
-    return send_from_directory(".", filename)
-
-# --- 비공개 영역 데이터 요청 ---
-@app.route("/api/private-data", methods=["GET"])
-def get_private_data():
-    if not session.get("authenticated"):
-        return jsonify({"error": "Unauthorized access"}), 401
-    return jsonify({"items": PRIVATE_ITEMS})
-
-# --- 패스키 등록 API ---
-@app.route("/api/register/begin", methods=["POST"])
+# 1. 패스키 등록 시작
+@app.route('/api/register/begin', methods=['POST'])
 def register_begin():
-    server = get_fido_server()
-    user = users["user1"]
-    
-    options, state = server.register_begin(
-        user={
-            "id": user["id"],
-            "name": user["name"],
-            "displayName": user["display_name"]
-        },
-        credentials=user["credentials"],
-        user_verification="discouraged"
+    user = users_db["user123"]
+    options = generate_registration_options(
+        rp_id=RP_ID,
+        rp_name=RP_NAME,
+        user_id=user["id"],
+        user_name=user["name"],
+        user_display_name=user["display_name"],
     )
-    
-    session["state"] = state
-    return jsonify(dict(options))
+    session['register_challenge'] = options.challenge
+    return jsonify(options)
 
-@app.route("/api/register/complete", methods=["POST"])
+# 2. 패스키 등록 완료
+@app.route('/api/register/complete', methods=['POST'])
 def register_complete():
     try:
-        server = get_fido_server()
-        state = session.get("state")
-        if not state:
-            return jsonify({"error": "Session expired"}), 400
-            
-        data = request.get_json()
-        auth_data = server.register_complete(state, data)
-        
-        credential_id = auth_data.credential_data.credential_id
-        users["user1"]["credentials"].append(auth_data.credential_data)
-        
-        session["authenticated"] = True
-        return jsonify({"status": "OK", "credential_id": base64.b64encode(credential_id).decode('utf-8')})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        challenge = session.get('register_challenge')
+        if not challenge:
+            return jsonify({"status": "FAILED", "error": "세션 차단 또는 챌린지 만료"}), 400
 
-# --- 패스키 인증 API ---
-@app.route("/api/authenticate/begin", methods=["POST"])
-def authenticate_begin():
-    server = get_fido_server()
-    user = users["user1"]
-    
-    if not user["credentials"]:
-        return jsonify({"error": "등록된 패스키가 없습니다."}), 400
-        
-    options, state = server.authenticate_begin(user["credentials"])
-    session["state"] = state
-    return jsonify(dict(options))
+        credential_data = request.get_json()
+        verification = verify_registration_response(
+            credential=credential_data,
+            expected_challenge=challenge,
+            expected_origin=request.host_url.rstrip('/'),
+            expected_rp_id=RP_ID,
+        )
 
-@app.route("/api/authenticate/complete", methods=["POST"])
-def authenticate_complete():
-    try:
-        server = get_fido_server()
-        state = session.get("state")
-        if not state:
-            return jsonify({"error": "Session expired"}), 400
-            
-        data = request.get_json()
-        server.authenticate_complete(state, users["user1"]["credentials"], data)
-        
-        session["authenticated"] = True
+        users_db["user123"]["credentials"].append({
+            "id": verification.credential_id,
+            "public_key": verification.credential_public_key,
+            "sign_count": verification.sign_count,
+        })
+        session['authenticated'] = True
         return jsonify({"status": "OK"})
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"status": "FAILED", "error": str(e)}), 400
 
-# --- 패스키 관리 및 삭제 API ---
-@app.route("/api/passkeys", methods=["GET"])
-def get_passkeys():
-    user = users["user1"]
-    result = []
-    for idx, cred in enumerate(user["credentials"]):
-        cred_id_str = base64.b64encode(cred.credential_id).decode('utf-8')
-        result.append({
-            "id": cred_id_str,
-            "name": f"패스키 #{idx + 1}"
-        })
-    return jsonify({"passkeys": result})
+# 3. 패스키 로그인 시작
+@app.route('/api/authenticate/begin', methods=['POST'])
+def auth_begin():
+    user = users_db["user123"]
+    if not user["credentials"]:
+        return jsonify({"error": "등록된 패스키가 없습니다. 먼저 새 패스키를 등록해주세요."}), 400
 
-@app.route("/api/passkeys/<key_id>", methods=["DELETE"])
-def delete_passkey(key_id):
-    user = users["user1"]
-    new_creds = []
-    for cred in user["credentials"]:
-        cred_id_str = base64.b64encode(cred.credential_id).decode('utf-8')
-        if cred_id_str != key_id:
-            new_creds.append(cred)
-            
-    user["credentials"] = new_creds
-    return jsonify({"success": True, "remaining": len(user["credentials"])})
+    options = generate_authentication_options(
+        rp_id=RP_ID,
+        user_verification=UserVerificationRequirement.PREFERRED,
+    )
+    session['auth_challenge'] = options.challenge
+    return jsonify(options)
 
-@app.route("/api/logout", methods=["POST"])
+# 4. 패스키 로그인 완료
+@app.route('/api/authenticate/complete', methods=['POST'])
+def auth_complete():
+    try:
+        challenge = session.get('auth_challenge')
+        credential_data = request.get_json()
+        user = users_db["user123"]
+
+        # 등록된 패스키 검증
+        matched_cred = None
+        for cred in user["credentials"]:
+            if cred["id"] == credential_data.get("id"):
+                matched_cred = cred
+                break
+
+        if not matched_cred:
+            return jsonify({"status": "FAILED", "error": "일치하는 패스키를 찾을 수 없습니다."}), 400
+
+        verification = verify_authentication_response(
+            credential=credential_data,
+            expected_challenge=challenge,
+            expected_origin=request.host_url.rstrip('/'),
+            expected_rp_id=RP_ID,
+            credential_public_key=matched_cred["public_key"],
+            credential_current_sign_count=matched_cred["sign_count"],
+        )
+
+        matched_cred["sign_count"] = verification.new_sign_count
+        session['authenticated'] = True
+        return jsonify({"status": "OK"})
+    except Exception as e:
+        return jsonify({"status": "FAILED", "error": str(e)}), 400
+
+# 5. 비공개 데이터 제공 API
+@app.route('/api/private-data', methods=['GET'])
+def get_private_data():
+    if not session.get('authenticated'):
+        return jsonify({"error": "인증되지 않은 사용자입니다."}), 401
+    return jsonify({"items": PRIVATE_PORTFOLIO_DATA})
+
+# 6. 로그아웃 API
+@app.route('/api/logout', methods=['POST'])
 def logout():
     session.clear()
-    return jsonify({"success": True})
+    return jsonify({"status": "OK"})
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+if __name__ == '__main__':
+    app.run(debug=True)
