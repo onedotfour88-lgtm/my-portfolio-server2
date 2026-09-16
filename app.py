@@ -144,5 +144,10 @@ def logout():
     session.clear()
     return jsonify({"status": "OK"})
 
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    session.clear() # 세션 데이터 제거
+    return jsonify({"status": "OK"})
+
 if __name__ == '__main__':
     app.run(debug=True)

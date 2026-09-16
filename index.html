@@ -3,38 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>이시헌 포트폴리오</title>
+    <title>이시헌 | Portfolio</title>
     <style>
-        body { font-family: sans-serif; background: #121212; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: #1e1e1e; padding: 2rem; border-radius: 12px; width: 100%; max-width: 450px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-        h1 { margin-bottom: 0.5rem; }
-        p { color: #aaa; font-size: 0.9rem; }
-        .btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 1.5rem; }
-        button { padding: 10px 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-primary { background: #2563eb; color: white; }
-        .btn-secondary { background: #374151; color: white; }
-        .status { margin-top: 1rem; font-weight: bold; color: #f87171; }
-        .content-area { margin-top: 1.5rem; text-align: left; background: #2a2a2a; padding: 1rem; border-radius: 8px; display: none; }
-        .item { margin-bottom: 1rem; border-bottom: 1px solid #3d3d3d; padding-bottom: 0.5rem; }
-        .item:last-child { border-bottom: none; }
-        .item-title { font-weight: bold; color: #60a5fa; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background-color: #0f172a; color: #f8fafc; line-height: 1.6; }
+        
+        /* Header & Navigation */
+        header { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 5%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px); position: fixed; width: 100%; top: 0; z-index: 50; border-bottom: 1px solid #1e293b; }
+        .logo { font-size: 1.25rem; font-weight: 700; color: #38bdf8; }
+        
+        .header-actions { display: flex; align-items: center; gap: 1rem; }
+        .auth-status { font-size: 0.85rem; padding: 6px 14px; border-radius: 20px; background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
+        .auth-status.active { background: #064e3b; color: #34d399; border-color: #059669; }
+
+        /* Hero Section */
+        .hero { min-height: 75vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 0 1rem; margin-top: 60px; }
+        .hero h1 { font-size: 3rem; font-weight: 800; margin-bottom: 1rem; background: linear-gradient(to right, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: 1.15rem; color: #94a3b8; max-width: 600px; margin-bottom: 2rem; }
+
+        /* Buttons */
+        .btn-group { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+        button { padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; font-size: 0.95rem; }
+        .btn-primary { background: #0284c7; color: white; }
+        .btn-primary:hover { background: #0369a1; }
+        .btn-secondary { background: #334155; color: white; }
+        .btn-secondary:hover { background: #475569; }
+        .btn-danger { background: #7f1d1d; color: #fca5a5; border: 1px solid #991b1b; }
+        .btn-danger:hover { background: #991b1b; color: #ffffff; }
+
+        /* Protected Content Section */
+        .container { max-width: 1000px; margin: 0 auto; padding: 3rem 1rem; }
+        .section-title { font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem; border-bottom: 2px solid #1e293b; padding-bottom: 0.5rem; color: #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        .card { background: #1e293b; padding: 1.5rem; border-radius: 12px; border: 1px solid #334155; }
+        .card h3 { color: #38bdf8; margin-bottom: 0.5rem; }
+        .card p { color: #cbd5e1; font-size: 0.95rem; }
+
+        /* Lock Overlay */
+        .lock-overlay { text-align: center; padding: 3.5rem 1.5rem; background: #1e293b; border-radius: 12px; border: 1px dashed #475569; }
+        .lock-overlay p { margin-bottom: 1.5rem; color: #94a3b8; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h1>🔒 이시헌 포트폴리오</h1>
-    <p>비공개 데이터 및 상세 포트폴리오 접근을 위해 Passkey 인증이 필요합니다.</p>
-    
-    <div id="status" class="status">상태: 인증 필요 (비로그인)</div>
+    <header>
+        <div class="logo">SIHEON.DEV</div>
+        <div class="header-actions">
+            <span id="authStatus" class="auth-status">🔒 비공개 데이터 잠김</span>
+            <button id="headerLogoutBtn" class="btn-danger" style="display: none;" onclick="logoutPasskey()">로그아웃</button>
+        </div>
+    </header>
 
-    <div class="btn-group">
-        <button class="btn-primary" onclick="loginPasskey()">🔑 패스키로 로그인</button>
-        <button class="btn-secondary" onclick="registerPasskey()">➕ 새 패스키 등록</button>
+    <section class="hero">
+        <h1>안녕하세요, 개발자 이시헌입니다.</h1>
+        <p>안전하고 확장에 용이한 웹 서비스와 백엔드 시스템을 구축합니다.<br>아래에서 Passkey 생체 인증 후 상세 프로젝트 명세를 확인하세요.</p>
+        
+        <!-- 인증 전 버튼 그룹 -->
+        <div class="btn-group" id="authBtns">
+            <button class="btn-primary" onclick="loginPasskey()">🔑 패스키 로그인</button>
+            <button class="btn-secondary" onclick="registerPasskey()">➕ 새 패스키 등록</button>
+        </div>
+
+        <!-- 인증 후 표시되는 버튼 그룹 -->
+        <div class="btn-group" id="loggedInBtns" style="display: none;">
+            <button class="btn-danger" onclick="logoutPasskey()">🔓 세션 종료 (로그아웃)</button>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="section-title">
+            <span>비공개 포트폴리오 명세</span>
+        </div>
+        
+        <!-- 인증 전 잠금 화면 -->
+        <div id="lockedView" class="lock-overlay">
+            <p>이 영역은 Passkey(지문/FaceID/Windows Hello) 인증 완료 후 해제됩니다.</p>
+            <button class="btn-primary" onclick="loginPasskey()">인증하고 내용 보기</button>
+        </div>
+
+        <!-- 인증 후 공개 영역 -->
+        <div id="unlockedView" class="grid" style="display: none;">
+            <!-- JS로 비공개 데이터가 삽입됩니다 -->
+        </div>
     </div>
-
-    <div id="content" class="content-area"></div>
-</div>
 
 <script>
     function bufferDecode(value) {
@@ -44,6 +96,25 @@
     function bufferEncode(value) {
         return btoa(String.fromCharCode(...new Uint8Array(value)))
             .replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+    }
+
+    // 페이지 로드 시 기존 세션 확인
+    window.addEventListener('DOMContentLoaded', () => {
+        checkAuthStatus();
+    });
+
+    async function checkAuthStatus() {
+        try {
+            const res = await fetch('/api/private-data');
+            if (res.ok) {
+                const data = await res.json();
+                renderLoggedInState(data.items);
+            } else {
+                renderLoggedOutState();
+            }
+        } catch (err) {
+            renderLoggedOutState();
+        }
     }
 
     async function registerPasskey() {
@@ -79,12 +150,12 @@
             const result = await completeRes.json();
             if (result.status === 'OK') {
                 alert('패스키 등록에 성공했습니다!');
-                loadPortfolio();
+                checkAuthStatus();
             } else {
                 alert('등록 완료 실패: ' + result.error);
             }
         } catch (err) {
-            alert('패스키 등록 중 오류: ' + err.message);
+            alert('패스키 등록 오류: ' + err.message);
         }
     }
 
@@ -94,7 +165,7 @@
             const options = await beginRes.json();
 
             if (!beginRes.ok) {
-                alert('로그인 초기화 실패: ' + (options.error || JSON.stringify(options)));
+                alert('로그인 실패: ' + (options.error || JSON.stringify(options)));
                 return;
             }
 
@@ -121,32 +192,62 @@
 
             const result = await completeRes.json();
             if (result.status === 'OK') {
-                alert('인증 성공!');
-                loadPortfolio();
+                checkAuthStatus();
             } else {
                 alert('로그인 실패: ' + result.error);
             }
         } catch (err) {
-            alert('로그인 중 오류: ' + err.message);
+            alert('인증 중 오류 발생: ' + err.message);
         }
     }
 
-    async function loadPortfolio() {
-        const res = await fetch('/api/private-data');
-        if (res.ok) {
-            const data = await res.json();
-            document.getElementById('status').innerText = '상태: 인증됨 (접근 완료)';
-            document.getElementById('status').style.color = '#4ade80';
-            
-            const contentDiv = document.getElementById('content');
-            contentDiv.style.display = 'block';
-            contentDiv.innerHTML = data.items.map(item => `
-                <div class="item">
-                    <div class="item-title">${item.title}</div>
-                    <div>${item.content}</div>
-                </div>
-            `).join('');
+    // 로그아웃 (서버 세션 해제 호출)
+    async function logoutPasskey() {
+        try {
+            await fetch('/api/logout', { method: 'POST' });
+        } catch (err) {
+            console.error(err);
+        } finally {
+            renderLoggedOutState();
+            alert('로그아웃 되었습니다.');
         }
+    }
+
+    // 로그인 완료 시 UI 변경
+    function renderLoggedInState(items) {
+        const statusBadge = document.getElementById('authStatus');
+        statusBadge.innerText = '🔓 인증 완료';
+        statusBadge.classList.add('active');
+
+        document.getElementById('headerLogoutBtn').style.display = 'inline-block';
+        document.getElementById('authBtns').style.display = 'none';
+        document.getElementById('loggedInBtns').style.display = 'flex';
+
+        document.getElementById('lockedView').style.display = 'none';
+        const unlockedView = document.getElementById('unlockedView');
+        unlockedView.style.display = 'grid';
+
+        unlockedView.innerHTML = items.map(item => `
+            <div class="card">
+                <h3>${item.title}</h3>
+                <p>${item.content}</p>
+            </div>
+        `).join('');
+    }
+
+    // 로그아웃 상태 UI 변경
+    function renderLoggedOutState() {
+        const statusBadge = document.getElementById('authStatus');
+        statusBadge.innerText = '🔒 비공개 데이터 잠김';
+        statusBadge.classList.remove('active');
+
+        document.getElementById('headerLogoutBtn').style.display = 'none';
+        document.getElementById('authBtns').style.display = 'flex';
+        document.getElementById('loggedInBtns').style.display = 'none';
+
+        document.getElementById('lockedView').style.display = 'block';
+        document.getElementById('unlockedView').style.display = 'none';
+        document.getElementById('unlockedView').innerHTML = '';
     }
 </script>
 </body>
