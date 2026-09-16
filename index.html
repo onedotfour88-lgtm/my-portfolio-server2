@@ -3,86 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>이시헌 | Passkey Portfolio</title>
+    <title>이시헌 포트폴리오</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .wrapper { width: 100%; max-width: 800px; }
-
-        /* [1] 로그인 게이트 (초기 진입 화면) */
-        #login-gate { background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); text-align: center; border: 1px solid #e2e8f0; }
-        #login-gate h1 { font-size: 1.8rem; color: #0f172a; margin-bottom: 8px; }
-        #login-gate p { color: #64748b; font-size: 0.95rem; margin-bottom: 24px; }
-        
-        .status-badge { display: inline-block; background: #fee2e2; color: #991b1b; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; margin-bottom: 24px; }
-        
-        .btn-group { display: flex; gap: 12px; justify-content: center; }
-        button { padding: 12px 24px; font-size: 0.95rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; }
-        .btn-primary { background: #2563eb; color: #ffffff; }
-        .btn-primary:hover { background: #1d4ed8; }
-        .btn-secondary { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
-        .btn-secondary:hover { background: #e2e8f0; }
-        .btn-logout { background: #ef4444; color: #ffffff; }
-        .btn-logout:hover { background: #dc2626; }
-
-        /* [2] 포트폴리오 본문 (로그인 후 노출) */
-        #portfolio-content { display: none; background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 24px; }
-        .section-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        .section-title { font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 12px; border-left: 4px solid #2563eb; padding-left: 10px; }
-        .private-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 8px; }
-        .private-title { color: #166534; font-weight: 700; margin-bottom: 8px; }
+        body { font-family: sans-serif; background: #121212; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: #1e1e1e; padding: 2rem; border-radius: 12px; width: 100%; max-width: 450px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        h1 { margin-bottom: 0.5rem; }
+        p { color: #aaa; font-size: 0.9rem; }
+        .btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 1.5rem; }
+        button { padding: 10px 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-secondary { background: #374151; color: white; }
+        .status { margin-top: 1rem; font-weight: bold; color: #f87171; }
+        .content-area { margin-top: 1.5rem; text-align: left; background: #2a2a2a; padding: 1rem; border-radius: 8px; display: none; }
+        .item { margin-bottom: 1rem; border-bottom: 1px solid #3d3d3d; padding-bottom: 0.5rem; }
+        .item:last-child { border-bottom: none; }
+        .item-title { font-weight: bold; color: #60a5fa; }
     </style>
 </head>
 <body>
 
-<div class="wrapper">
-    <!-- 로그인 게이트 -->
-    <div id="login-gate">
-        <h1>🔒 이시헌 포트폴리오</h1>
-        <p>비공개 데이터 및 상세 포트폴리오 접근을 위해 Passkey 인증이 필요합니다.</p>
-        
-        <div id="auth-status" class="status-badge">상태: 인증 필요 (비로그인)</div>
-        
-        <div class="btn-group">
-            <button class="btn-primary" onclick="authenticatePasskey()">🔑 패스키로 로그인</button>
-            <button class="btn-secondary" onclick="registerPasskey()">➕ 새 패스키 등록</button>
-        </div>
+<div class="card">
+    <h1>🔒 이시헌 포트폴리오</h1>
+    <p>비공개 데이터 및 상세 포트폴리오 접근을 위해 Passkey 인증이 필요합니다.</p>
+    
+    <div id="status" class="status">상태: 인증 필요 (비로그인)</div>
+
+    <div class="btn-group">
+        <button class="btn-primary" onclick="loginPasskey()">🔑 패스키로 로그인</button>
+        <button class="btn-secondary" onclick="registerPasskey()">➕ 새 패스키 등록</button>
     </div>
 
-    <!-- 포트폴리오 본문 -->
-    <div id="portfolio-content">
-        <div class="top-bar">
-            <h2>DEVELOPER PORTFOLIO</h2>
-            <button class="btn-logout" onclick="handleLogout()">로그아웃</button>
-        </div>
-
-        <div class="section-title">인적 사항</div>
-        <div class="section-box">
-            <p style="margin-bottom:6px;"><strong>이름:</strong> 이시헌 (27세 / 남)</p>
-            <p style="margin-bottom:6px;"><strong>이메일:</strong> onedotfour88@gmail.com</p>
-            <p style="margin-bottom:6px;"><strong>연락처:</strong> 010-4611-3907</p>
-            <p><strong>주소:</strong> 부산광역시 동래구 온천2동</p>
-        </div>
-
-        <div class="section-title">경력 및 프로젝트</div>
-        <div class="section-box">
-            <ul style="padding-left: 20px; line-height: 1.8;">
-                <li>대학 캡스톤 프로젝트 참여</li>
-                <li>프론트 엔드 관련 공부 및 프로젝트 수행 (구글 맵 지도 기능을 이용한 택시 앱 개발)</li>
-            </ul>
-        </div>
-
-        <div class="section-title">비공개 데이터 (인증 성공)</div>
-        <div class="private-box">
-            <div class="private-title">🔐 PRIVATE DATA</div>
-            <div id="private-items-list">데이터 로딩 중...</div>
-        </div>
-    </div>
+    <div id="content" class="content-area"></div>
 </div>
 
 <script>
-    // Base64URL 변환 유틸리티
     function bufferDecode(value) {
         return Uint8Array.from(atob(value.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
     }
@@ -92,62 +46,16 @@
             .replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
     }
 
-    // 패스키 로그인
-    async function authenticatePasskey() {
-        try {
-            const beginRes = await fetch('/api/authenticate/begin', { method: 'POST' });
-            if (!beginRes.ok) {
-                const errData = await beginRes.json();
-                alert('로그인 시작 오류: ' + (errData.error || '등록된 패스키가 없습니다. 먼저 등록해주세요.'));
-                return;
-            }
-            
-            const options = await beginRes.json();
-            options.challenge = bufferDecode(options.challenge);
-            if (options.allowCredentials) {
-                options.allowCredentials.forEach(c => c.id = bufferDecode(c.id));
-            }
-
-            const cred = await navigator.credentials.get({ publicKey: options });
-            const authData = {
-                id: cred.id,
-                rawId: bufferEncode(cred.rawId),
-                type: cred.type,
-                response: {
-                    authenticatorData: bufferEncode(cred.response.authenticatorData),
-                    clientDataJSON: bufferEncode(cred.response.clientDataJSON),
-                    signature: bufferEncode(cred.response.signature),
-                    userHandle: cred.response.userHandle ? bufferEncode(cred.response.userHandle) : null
-                }
-            };
-
-            const completeRes = await fetch('/api/authenticate/complete', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(authData)
-            });
-
-            const result = await completeRes.json();
-            if (result.status === 'OK') {
-                loadPortfolio();
-            } else {
-                alert('인증 실패: ' + result.error);
-            }
-        } catch (err) {
-            alert('패스키 로그인 진행 중 오류 발생: ' + err.message);
-        }
-    }
-
-    // 패스키 등록
     async function registerPasskey() {
         try {
             const beginRes = await fetch('/api/register/begin', { method: 'POST' });
+            const options = await beginRes.json();
+            
             if (!beginRes.ok) {
-                alert('등록 초기화 실패');
+                alert('등록 초기화 실패: ' + (options.error || JSON.stringify(options)));
                 return;
             }
 
-            const options = await beginRes.json();
             options.challenge = bufferDecode(options.challenge);
             options.user.id = bufferDecode(options.user.id);
 
@@ -170,34 +78,75 @@
 
             const result = await completeRes.json();
             if (result.status === 'OK') {
-                alert('패스키 등록에 성공했습니다! 포트폴리오로 진입합니다.');
+                alert('패스키 등록에 성공했습니다!');
                 loadPortfolio();
             } else {
                 alert('등록 완료 실패: ' + result.error);
             }
         } catch (err) {
-            alert('패스키 등록 진행 중 오류 발생: ' + err.message);
+            alert('패스키 등록 중 오류: ' + err.message);
         }
     }
 
-    // 포트폴리오 화면 전환 및 데이터 응답
-    async function loadPortfolio() {
-        document.getElementById('login-gate').style.display = 'none';
-        document.getElementById('portfolio-content').style.display = 'block';
+    async function loginPasskey() {
+        try {
+            const beginRes = await fetch('/api/authenticate/begin', { method: 'POST' });
+            const options = await beginRes.json();
 
+            if (!beginRes.ok) {
+                alert('로그인 초기화 실패: ' + (options.error || JSON.stringify(options)));
+                return;
+            }
+
+            options.challenge = bufferDecode(options.challenge);
+
+            const cred = await navigator.credentials.get({ publicKey: options });
+            const authData = {
+                id: cred.id,
+                rawId: bufferEncode(cred.rawId),
+                type: cred.type,
+                response: {
+                    authenticatorData: bufferEncode(cred.response.authenticatorData),
+                    clientDataJSON: bufferEncode(cred.response.clientDataJSON),
+                    signature: bufferEncode(cred.response.signature),
+                    userHandle: cred.response.userHandle ? bufferEncode(cred.response.userHandle) : null
+                }
+            };
+
+            const completeRes = await fetch('/api/authenticate/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(authData)
+            });
+
+            const result = await completeRes.json();
+            if (result.status === 'OK') {
+                alert('인증 성공!');
+                loadPortfolio();
+            } else {
+                alert('로그인 실패: ' + result.error);
+            }
+        } catch (err) {
+            alert('로그인 중 오류: ' + err.message);
+        }
+    }
+
+    async function loadPortfolio() {
         const res = await fetch('/api/private-data');
         if (res.ok) {
             const data = await res.json();
-            const listHtml = data.items.map(item => `<div style="margin-bottom:8px;"><strong>${item.title}:</strong> ${item.content}</div>`).join('');
-            document.getElementById('private-items-list').innerHTML = listHtml;
+            document.getElementById('status').innerText = '상태: 인증됨 (접근 완료)';
+            document.getElementById('status').style.color = '#4ade80';
+            
+            const contentDiv = document.getElementById('content');
+            contentDiv.style.display = 'block';
+            contentDiv.innerHTML = data.items.map(item => `
+                <div class="item">
+                    <div class="item-title">${item.title}</div>
+                    <div>${item.content}</div>
+                </div>
+            `).join('');
         }
-    }
-
-    // 로그아웃
-    async function handleLogout() {
-        await fetch('/api/logout', { method: 'POST' });
-        document.getElementById('portfolio-content').style.display = 'none';
-        document.getElementById('login-gate').style.display = 'block';
     }
 </script>
 </body>

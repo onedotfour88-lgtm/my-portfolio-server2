@@ -11,8 +11,6 @@ from webauthn.helpers.structs import UserVerificationRequirement
 app = Flask(__name__, template_folder='.', static_folder='.')
 app.secret_key = os.environ.get('SECRET_KEY', 'super-secret-key-for-passkey')
 
-# Passkey RP 설정 (Vercel 기본 도메인 자동 감지 및 fallback)
-RP_ID = os.environ.get('VERCEL_URL', 'localhost')
 RP_NAME = "Lee Siheon Portfolio"
 
 users_db = {
@@ -30,22 +28,29 @@ PRIVATE_PORTFOLIO_DATA = [
     {"title": "대외비 데이터", "content": "비공개 포트폴리오 상세 명세서 및 개인 기여도 리포트 문서 포함"}
 ]
 
+def get_rp_id():
+    return request.host.split(':')[0]
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
 @app.route('/api/register/begin', methods=['POST'])
 def register_begin():
-    user = users_db["user123"]
-    options = generate_registration_options(
-        rp_id=RP_ID,
-        rp_name=RP_NAME,
-        user_id=user["id"],
-        user_name=user["name"],
-        user_display_name=user["display_name"],
-    )
-    session['register_challenge'] = options.challenge
-    return jsonify(options)
+    try:
+        user = users_db["user123"]
+        rp_id = get_rp_id()
+        options = generate_registration_options(
+            rp_id=rp_id,
+            rp_name=RP_NAME,
+            user_id=user["id"],
+            user_name=user["name"],
+            user_display_name=user["display_name"],
+        )
+        session['register_challenge'] = options.challenge
+        return jsonify(options)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/register/complete', methods=['POST'])
 def register_complete():
@@ -55,11 +60,14 @@ def register_complete():
             return jsonify({"status": "FAILED", "error": "세션 차단 또는 챌린지 만료"}), 400
 
         credential_data = request.get_json()
+        rp_id = get_rp_id()
+        origin = request.headers.get('Origin', request.host_url.rstrip('/'))
+
         verification = verify_registration_response(
             credential=credential_data,
             expected_challenge=challenge,
-            expected_origin=request.host_url.rstrip('/'),
-            expected_rp_id=RP_ID,
+            expected_origin=origin,
+            expected_rp_id=rp_id,
         )
 
         users_db["user123"]["credentials"].append({
@@ -74,16 +82,20 @@ def register_complete():
 
 @app.route('/api/authenticate/begin', methods=['POST'])
 def auth_begin():
-    user = users_db["user123"]
-    if not user["credentials"]:
-        return jsonify({"error": "등록된 패스키가 없습니다. 먼저 새 패스키를 등록해주세요."}), 400
+    try:
+        user = users_db["user123"]
+        if not user["credentials"]:
+            return jsonify({"error": "등록된 패스키가 없습니다. 먼저 새 패스키를 등록해주세요."}), 400
 
-    options = generate_authentication_options(
-        rp_id=RP_ID,
-        user_verification=UserVerificationRequirement.PREFERRED,
-    )
-    session['auth_challenge'] = options.challenge
-    return jsonify(options)
+        rp_id = get_rp_id()
+        options = generate_authentication_options(
+            rp_id=rp_id,
+            user_verification=UserVerificationRequirement.PREFERRED,
+        )
+        session['auth_challenge'] = options.challenge
+        return jsonify(options)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/authenticate/complete', methods=['POST'])
 def auth_complete():
@@ -91,6 +103,8 @@ def auth_complete():
         challenge = session.get('auth_challenge')
         credential_data = request.get_json()
         user = users_db["user123"]
+        rp_id = get_rp_id()
+        origin = request.headers.get('Origin', request.host_url.rstrip('/'))
 
         matched_cred = None
         for cred in user["credentials"]:
@@ -104,8 +118,8 @@ def auth_complete():
         verification = verify_authentication_response(
             credential=credential_data,
             expected_challenge=challenge,
-            expected_origin=request.host_url.rstrip('/'),
-            expected_rp_id=RP_ID,
+            expected_origin=origin,
+            expected_rp_id=rp_id,
             credential_public_key=matched_cred["public_key"],
             credential_current_sign_count=matched_cred["sign_count"],
         )
