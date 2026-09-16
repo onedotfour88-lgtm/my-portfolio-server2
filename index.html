@@ -9,7 +9,7 @@
         body { background-color: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
         .wrapper { width: 100%; max-width: 800px; }
 
-        /* [1] 로그인 게이트 (초기 진입 시 이것만 보임) */
+        /* [1] 로그인 게이트 (초기 진입 화면) */
         #login-gate { background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); text-align: center; border: 1px solid #e2e8f0; }
         #login-gate h1 { font-size: 1.8rem; color: #0f172a; margin-bottom: 8px; }
         #login-gate p { color: #64748b; font-size: 0.95rem; margin-bottom: 24px; }
@@ -25,7 +25,7 @@
         .btn-logout { background: #ef4444; color: #ffffff; }
         .btn-logout:hover { background: #dc2626; }
 
-        /* [2] 포트폴리오 본문 (초기에는 숨김) */
+        /* [2] 포트폴리오 본문 (로그인 후 노출) */
         #portfolio-content { display: none; background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; }
         .top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 24px; }
         .section-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
@@ -37,12 +37,12 @@
 <body>
 
 <div class="wrapper">
-    <!-- [1] 첫 진입 화면: 패스키 로그인 전용 Gate -->
+    <!-- 로그인 게이트 -->
     <div id="login-gate">
         <h1>🔒 이시헌 포트폴리오</h1>
-        <p>포트폴리오에 접근하려면 Passkey 인증으로 로그인하세요.</p>
+        <p>비공개 데이터 및 상세 포트폴리오 접근을 위해 Passkey 인증이 필요합니다.</p>
         
-        <div id="auth-status" class="status-badge">현재 상태: 비로그인 (접근 불가)</div>
+        <div id="auth-status" class="status-badge">상태: 인증 필요 (비로그인)</div>
         
         <div class="btn-group">
             <button class="btn-primary" onclick="authenticatePasskey()">🔑 패스키로 로그인</button>
@@ -50,7 +50,7 @@
         </div>
     </div>
 
-    <!-- [2] 로그인 성공 시에만 열리는 포트폴리오 메인 화면 -->
+    <!-- 포트폴리오 본문 -->
     <div id="portfolio-content">
         <div class="top-bar">
             <h2>DEVELOPER PORTFOLIO</h2>
@@ -81,6 +81,124 @@
     </div>
 </div>
 
-<script src="./script.js"></script>
+<script>
+    // Base64URL 변환 유틸리티
+    function bufferDecode(value) {
+        return Uint8Array.from(atob(value.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+    }
+
+    function bufferEncode(value) {
+        return btoa(String.fromCharCode(...new Uint8Array(value)))
+            .replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+    }
+
+    // 패스키 로그인
+    async function authenticatePasskey() {
+        try {
+            const beginRes = await fetch('/api/authenticate/begin', { method: 'POST' });
+            if (!beginRes.ok) {
+                const errData = await beginRes.json();
+                alert('로그인 시작 오류: ' + (errData.error || '등록된 패스키가 없습니다. 먼저 등록해주세요.'));
+                return;
+            }
+            
+            const options = await beginRes.json();
+            options.challenge = bufferDecode(options.challenge);
+            if (options.allowCredentials) {
+                options.allowCredentials.forEach(c => c.id = bufferDecode(c.id));
+            }
+
+            const cred = await navigator.credentials.get({ publicKey: options });
+            const authData = {
+                id: cred.id,
+                rawId: bufferEncode(cred.rawId),
+                type: cred.type,
+                response: {
+                    authenticatorData: bufferEncode(cred.response.authenticatorData),
+                    clientDataJSON: bufferEncode(cred.response.clientDataJSON),
+                    signature: bufferEncode(cred.response.signature),
+                    userHandle: cred.response.userHandle ? bufferEncode(cred.response.userHandle) : null
+                }
+            };
+
+            const completeRes = await fetch('/api/authenticate/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(authData)
+            });
+
+            const result = await completeRes.json();
+            if (result.status === 'OK') {
+                loadPortfolio();
+            } else {
+                alert('인증 실패: ' + result.error);
+            }
+        } catch (err) {
+            alert('패스키 로그인 진행 중 오류 발생: ' + err.message);
+        }
+    }
+
+    // 패스키 등록
+    async function registerPasskey() {
+        try {
+            const beginRes = await fetch('/api/register/begin', { method: 'POST' });
+            if (!beginRes.ok) {
+                alert('등록 초기화 실패');
+                return;
+            }
+
+            const options = await beginRes.json();
+            options.challenge = bufferDecode(options.challenge);
+            options.user.id = bufferDecode(options.user.id);
+
+            const cred = await navigator.credentials.create({ publicKey: options });
+            const regData = {
+                id: cred.id,
+                rawId: bufferEncode(cred.rawId),
+                type: cred.type,
+                response: {
+                    attestationObject: bufferEncode(cred.response.attestationObject),
+                    clientDataJSON: bufferEncode(cred.response.clientDataJSON)
+                }
+            };
+
+            const completeRes = await fetch('/api/register/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(regData)
+            });
+
+            const result = await completeRes.json();
+            if (result.status === 'OK') {
+                alert('패스키 등록에 성공했습니다! 포트폴리오로 진입합니다.');
+                loadPortfolio();
+            } else {
+                alert('등록 완료 실패: ' + result.error);
+            }
+        } catch (err) {
+            alert('패스키 등록 진행 중 오류 발생: ' + err.message);
+        }
+    }
+
+    // 포트폴리오 화면 전환 및 데이터 응답
+    async function loadPortfolio() {
+        document.getElementById('login-gate').style.display = 'none';
+        document.getElementById('portfolio-content').style.display = 'block';
+
+        const res = await fetch('/api/private-data');
+        if (res.ok) {
+            const data = await res.json();
+            const listHtml = data.items.map(item => `<div style="margin-bottom:8px;"><strong>${item.title}:</strong> ${item.content}</div>`).join('');
+            document.getElementById('private-items-list').innerHTML = listHtml;
+        }
+    }
+
+    // 로그아웃
+    async function handleLogout() {
+        await fetch('/api/logout', { method: 'POST' });
+        document.getElementById('portfolio-content').style.display = 'none';
+        document.getElementById('login-gate').style.display = 'block';
+    }
+</script>
 </body>
 </html>
