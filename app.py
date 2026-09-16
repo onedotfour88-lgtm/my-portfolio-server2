@@ -1,10 +1,12 @@
 import os
-from flask import Flask, render_template, request, jsonify, session
+import json
+from flask import Flask, render_template, request, jsonify, session, Response
 from webauthn import (
     generate_registration_options,
     verify_registration_response,
     generate_authentication_options,
     verify_authentication_response,
+    options_to_json,
 )
 from webauthn.helpers.structs import UserVerificationRequirement
 
@@ -48,7 +50,8 @@ def register_begin():
             user_display_name=user["display_name"],
         )
         session['register_challenge'] = options.challenge
-        return jsonify(options)
+        # options 객체를 webauthn 전용 json 변환 함수로 직렬화
+        return Response(options_to_json(options), mimetype='application/json')
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -93,7 +96,7 @@ def auth_begin():
             user_verification=UserVerificationRequirement.PREFERRED,
         )
         session['auth_challenge'] = options.challenge
-        return jsonify(options)
+        return Response(options_to_json(options), mimetype='application/json')
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
